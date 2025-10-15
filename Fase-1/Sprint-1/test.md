@@ -1,80 +1,119 @@
-## **A. Port Utama Hadoop (Core Cluster)**
+💡 Sangat bagus kamu sudah sampai tahap uji tulis ke HDFS — dan error yang muncul ini:
 
-| Komponen                            | Port      | Akses di Browser         | Keterangan                                          |
-| ----------------------------------- | --------- | ------------------------ | --------------------------------------------------- |
-| **HDFS NameNode UI**                | **9870**  | `http://localhost:9870`  | Melihat status HDFS, kapasitas, DataNode, file tree |
-| **HDFS DataNode UI**                | **9864**  | `http://localhost:9864`  | Monitoring DataNode (aktif di setiap worker)        |
-| **Secondary NameNode UI**           | **9868**  | `http://localhost:9868`  | Monitoring checkpoint NameNode                      |
-| **YARN ResourceManager UI**         | **8088**  | `http://localhost:8088`  | Monitoring job, queue, aplikasi Spark & MapReduce   |
-| **YARN NodeManager UI**             | **8042**  | `http://localhost:8042`  | Monitoring container & task di tiap node            |
-| **JobHistory Server (MapReduce)**   | **19888** | `http://localhost:19888` | Melihat riwayat eksekusi job MapReduce              |
-| **Spark Web UI (driver)**           | **4040**  | `http://localhost:4040`  | Menampilkan Spark jobs, stages, dan executor        |
-| **Spark History Server (opsional)** | **18080** | `http://localhost:18080` | Melihat log & hasil Spark jobs terdahulu            |
-
----
-
-## **B. Port Pendukung (Opsional / Service Tambahan)**
-
-| Komponen                       | Port      | Keterangan                                |
-| ------------------------------ | --------- | ----------------------------------------- |
-| **HiveServer2 (JDBC/Beeline)** | **10000** | Untuk koneksi SQL ke Hive                 |
-| **Hive Metastore**             | **9083**  | Dihubungkan dengan PostgreSQL metastore   |
-| **Airflow Webserver**          | **8080**  | UI workflow DAG (ada di VM-Management)    |
-| **Grafana**                    | **3000**  | Dashboard visualisasi cluster & metrik    |
-| **PostgreSQL**                 | **5432**  | Database metastore Hive / Airflow backend |
-| **Prometheus (opsional)**      | **9090**  | Monitoring metrics untuk Hadoop/Spark     |
-
----
-
-## **C. Port Forwarding dari Laptop ke VM Management → VM Master**
-
-Jika kamu ingin mengakses semuanya **dari laptop lokal (browser)**, cukup jalankan tunnel seperti ini dari laptop 👇
-
-```bash
-ssh -i ~/.ssh/insightera \
-  -L 9870:master:9870 \
-  -L 8088:master:8088 \
-  -L 4040:master:4040 \
-  -L 18080:master:18080 \
-  -L 19888:master:19888 \
-  -L 9864:worker1:9864 \
-  -L 9864:worker2:9864 \
-  insightera@20.184.7.134
+```
+put: `/user/insightera/': No such file or directory: `hdfs://master:9000/user/insightera'
+ls: `/user/insightera/': No such file or directory
 ```
 
-Lalu di browser lokal buka:
+artinya sederhana:
+👉 **HDFS belum dibuatkan direktori `/user/insightera` di dalam namespace HDFS.**
 
-* 🌐 `http://localhost:9870` → NameNode
-* 🌐 `http://localhost:8088` → ResourceManager
-* 🌐 `http://localhost:4040` → Spark session aktif
-* 🌐 `http://localhost:9864` → DataNode
-* 🌐 `http://localhost:18080` → Spark History
+HDFS tidak otomatis membuat folder home untuk setiap user — kita harus buat manual setelah NameNode diformat dan service `dfs` sudah berjalan.
 
 ---
 
-## Tips Tambahan
+## ✅ **Langkah Perbaikan**
 
-1. **Pastikan di VM-Master firewall/NSG tidak memblokir port internal** (9864, 9870, 8088, dsb).
-   Jalankan:
+### **1️⃣ Pastikan Hadoop cluster aktif**
 
-   ```bash
-   sudo ufw disable
-   ```
+Pastikan service DFS jalan di master:
 
-   (karena NSG Azure sudah handle keamanan antar-VM).
+```bash
+jps
+```
 
-2. **Bisa buat alias tunnel di `~/.ssh/config`**:
+Harus ada proses:
 
-   ```bash
-   Host tunnel-hadoop
-       HostName 20.184.7.134
-       User insightera
-       IdentityFile ~/.ssh/insightera
-       LocalForward 9870 master:9870
-       LocalForward 8088 master:8088
-       LocalForward 4040 master:4040
-       LocalForward 18080 master:18080
-       LocalForward 19888 master:19888
-       LocalForward 9864 worker1:9864
-       LocalForward 9865 worker2:9864
-   ```
+```
+NameNode
+DataNode
+SecondaryNameNode
+```
+
+Kalau belum ada, start dulu:
+
+```bash
+start-dfs.sh
+```
+
+---
+
+### **2️⃣ Buat folder user di HDFS**
+
+Buat folder `/user` (kalau belum ada):
+
+```bash
+hdfs dfs -mkdir /user
+```
+
+Kemudian buat folder untuk user kamu:
+
+```bash
+hdfs dfs -mkdir /user/insightera
+```
+
+Set permission supaya kamu bisa tulis:
+
+```bash
+hdfs dfs -chown -R insightera /user/insightera
+hdfs dfs -chmod -R 755 /user/insightera
+```
+
+---
+
+### **3️⃣ Ulangi uji coba upload**
+
+Sekarang ulangi:
+
+```bash
+hdfs dfs -put replication-test.txt /user/insightera/
+```
+
+Lalu cek:
+
+```bash
+hdfs dfs -ls /user/insightera/
+```
+
+Output yang benar:
+
+```
+Found 1 items
+-rw-r--r--   1 insightera supergroup         32 2025-10-15 10:42 /user/insightera/replication-test.txt
+```
+
+---
+
+## 🧭 **Kenapa ini terjadi**
+
+* Direktori `/user/<username>` **tidak otomatis dibuat** setelah format HDFS.
+* Saat kamu jalankan `hdfs dfs -put`, HDFS akan menolak kalau path tujuan tidak ada.
+
+---
+
+## 💡 **Tips lanjutan**
+
+Untuk membuat folder otomatis setiap kali cluster baru diformat (praktik umum di produksi), kamu bisa tambahkan di `bootstrap.sh`:
+
+```bash
+hdfs dfs -mkdir -p /user/insightera
+hdfs dfs -chown -R insightera /user/insightera
+```
+
+atau gunakan folder `input`, `output`, `staging`, `warehouse`:
+
+```bash
+hdfs dfs -mkdir -p /data/{bronze,silver,gold}
+hdfs dfs -chmod -R 755 /data
+```
+
+---
+
+Kalau kamu mau, aku bisa bantu buatkan **skrip inisialisasi HDFS (`init-hdfs-structure.sh`)**
+yang langsung menyiapkan:
+
+* `/user/insightera`
+* `/data/bronze`, `/data/silver`, `/data/gold`
+* `/warehouse/hive`
+  Lengkap dengan `chown` dan permission yang sesuai.
+  Apakah mau saya buatkan sekalian?

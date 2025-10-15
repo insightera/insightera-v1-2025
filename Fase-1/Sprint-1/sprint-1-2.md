@@ -118,7 +118,7 @@ az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Worker2 \
   --image Ubuntu2404 \
-  --size Standard_A1_v2 \
+  --size Standard_B1s \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera.pub \
   --nics NIC-Worker2 \
