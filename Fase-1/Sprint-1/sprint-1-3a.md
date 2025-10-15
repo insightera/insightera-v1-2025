@@ -23,14 +23,14 @@ Hadoop akan diinstal pada tiga node utama:
 Masuk ke masing-masing node (Master, Worker1, Worker2) menggunakan SSH:
 
 ```bash
-ssh -i ~/.ssh/insightera_dev_key insightera@<PublicIP_VM>
+ssh -i ~/.ssh/insightera insightera@<PublicIP_VM>
 ```
 
 Kemudian, pada setiap VM jalankan perintah berikut untuk menyiapkan direktori kerja Hadoop:
 
 ```bash
 sudo apt update -y
-sudo apt install openjdk-11-jdk -y
+sudo apt install openjdk-17-jdk -y
 ```
 
 Verifikasi Java:
@@ -42,7 +42,7 @@ java -version
 Output yang diharapkan:
 
 ```
-openjdk version "11.0.xx"
+openjdk version "17.0.xx"
 ```
 
 Tambahkan variabel lingkungan Java ke `.bashrc`:
