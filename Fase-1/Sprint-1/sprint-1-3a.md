@@ -188,9 +188,88 @@ worker2
 Salin semua konfigurasi ke node Worker:
 
 ```bash
+ssh worker1 "sudo mkdir -p /opt/hadoop/etc && sudo chown -R insightera:insightera /opt/hadoop"
+ssh worker2 "sudo mkdir -p /opt/hadoop/etc && sudo chown -R insightera:insightera /opt/hadoop"
+```
+
+```bash
 scp -r /opt/hadoop/etc/hadoop/ worker1:/opt/hadoop/etc/
 scp -r /opt/hadoop/etc/hadoop/ worker2:/opt/hadoop/etc/
 ```
+Edit /opt/hadoop/etc/hadoop/workers atau slaves
+
+```bash
+sudo nano /opt/hadoop/etc/hadoop/workers
+```
+
+lalu tambahkan:
+```bash
+worker1
+worker2
+```
+### **Pastikan SSH Passwordless di Master**
+
+Masuk ke VM-Master:
+
+```bash
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Uji:
+
+```bash
+ssh localhost "hostname"
+```
+
+Kalau sukses tanpa password → beres untuk lokal.
+Lalu sebarkan ke semua worker:
+
+```bash
+for node in master worker1 worker2; do
+  ssh-copy-id -i ~/.ssh/id_rsa.pub insightera@$node
+done
+```
+
+Uji koneksi semua node:
+
+```bash
+for node in master worker1 worker2; do
+  ssh $node "hostname"
+done
+```
+
+---
+
+### ** Pastikan Hadoop terpasang di lokasi yang sama di semua node**
+
+Di setiap node (worker1, worker2), pastikan:
+
+```bash
+ls /opt/hadoop/bin/hdfs
+```
+
+Kalau hasilnya `No such file or directory`, berarti Hadoop belum dikopi ke situ.
+
+💡 Solusi cepat (dari Master):
+
+```bash
+for node in worker1 worker2; do
+  ssh $node "sudo mkdir -p /opt && sudo chown -R insightera:insightera /opt"
+  scp -r /opt/hadoop $node:/opt/
+done
+```
+
+Lalu verifikasi di setiap worker:
+
+```bash
+ssh worker1 "ls /opt/hadoop/bin/hdfs"
+ssh worker2 "ls /opt/hadoop/bin/hdfs"
+```
+
+Kalau file `hdfs` dan `yarn` muncul → siap jalan.
 
 ---
 
@@ -204,7 +283,10 @@ sudo mkdir -p /opt/hadoop_data/hdfs/datanode
 sudo chown -R insightera:insightera /opt/hadoop_data
 ```
 
-Lakukan pada seluruh node.
+Lakukan pada seluruh VM
+
+
+
 
 ---
 
