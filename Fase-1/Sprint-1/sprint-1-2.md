@@ -42,12 +42,12 @@ Kunci publik `~/.ssh/insightera.pub` akan digunakan untuk otentikasi VM.
 Gunakan perintah berikut untuk membuat masing-masing node VM:
 
 ```bash
-# VM-Master (4 vCPU / 16 GB)
+# VM-Master
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Master \
   --image Ubuntu2404 \
-  --size Standard_D4s_v3 \
+  --size Standard_B2s \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
@@ -59,12 +59,12 @@ az vm create \
 ```
 
 ```bash
-# VM-Management (2 vCPU / 8 GB)
+# VM-Management
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Management \
   --image Ubuntu2404 \
-  --size Standard_D2s_v3 \
+  --size Standard_B1ms \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
@@ -82,12 +82,12 @@ az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Worker1 \
   --image Ubuntu2404 \
-  --size Standard_B2s \
+  --size Standard_B1ms \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
-  --os-disk-size-gb 32 \
+  --os-disk-size-gb 64 \
   --nsg NSG-Insightera \
   --private-ip-address 10.0.1.9 \
   --tags project=insightera role=worker env=dev
@@ -99,18 +99,23 @@ az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Worker2 \
   --image Ubuntu2404 \
-  --size Standard_B2s \
+  --size Standard_B1ms \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
-  --os-disk-size-gb 32 \
+  --os-disk-size-gb 64 \
   --nsg NSG-Insightera \
   --private-ip-address 10.0.1.10 \
   --tags project=insightera role=worker env=dev
 ```
 
 Masing-masing VM akan otomatis dibuat dengan IP privat tetap sesuai konfigurasi. Azure juga akan menghasilkan IP publik sementara untuk koneksi SSH dari luar.
+
+Kamu bisa cek kuota semua VM family:
+```
+az vm list-usage --location southeastasia --output table
+```
 
 ---
 
