@@ -12,10 +12,10 @@ Semua VM menggunakan sistem operasi Ubuntu 24.04 LTS, dengan konfigurasi spesifi
 
 | Node          | Peran                                        | vCPU | RAM  | Disk  | IP Privat |
 | ------------- | -------------------------------------------- | ---- | ---- | ----- | --------- |
-| VM-Master     | NameNode, ResourceManager, Spark Master      | 2    | 4 GB | 64 GB | 10.0.1.7  |
-| VM-Management | Airflow, PostgreSQL, Hive Metastore, Grafana | 2    | 4 GB | 64 GB | 10.0.1.8  |
-| VM-Worker1    | DataNode, NodeManager, Spark Worker          | 2    | 4 GB | 64 GB | 10.0.1.9  |
-| VM-Worker2    | DataNode, NodeManager, Stream Gateway        | 2    | 4 GB | 64 GB | 10.0.1.10 |
+| VM-Master     | NameNode, ResourceManager, Spark Master      | 1    | 2 GB | 64 GB | 10.0.1.7  |
+| VM-Management | Airflow, PostgreSQL, Hive Metastore, Grafana | 1    | 2 GB | 64 GB | 10.0.1.8  |
+| VM-Worker1    | DataNode, NodeManager, Spark Worker          | 1    | 2 GB | 64 GB | 10.0.1.9  |
+| VM-Worker2    | DataNode, NodeManager, Stream Gateway        | 1    | 1 GB | 64 GB | 10.0.1.10 |
 
 Tipe VM yang direkomendasikan: `Standard_B2s`
 Wilayah: `southeastasia`
@@ -77,7 +77,8 @@ az vm create \
   --os-disk-size-gb 64 \
   --nsg NSG-Insightera \
   --private-ip-address 10.0.1.8 \
-  --public-ip-address "" \
+  --public-ip-address VM-ManagementPublicIP \
+  --public-ip-sku Standard \
   --tags project=insightera role=management env=dev
 ```
 
@@ -157,10 +158,10 @@ VM-Worker2      20.55.241.10     10.0.1.10
 
 #### 5. Uji Koneksi SSH
 
-Gunakan kunci SSH yang telah dibuat untuk mengakses VM Master:
+Gunakan kunci SSH yang telah dibuat untuk mengakses VM Management:
 
 ```bash
-ssh -i ~/.ssh/insightera_dev_key insightera@<PublicIP_VM-Master>
+ssh -i ~/.ssh/insightera insightera@<PublicIP_VM-Management>
 ```
 
 Setelah berhasil masuk ke VM Master, uji koneksi antar-node:
@@ -172,16 +173,125 @@ ping -c 2 10.0.1.10
 ```
 
 Jika semua node dapat saling berkomunikasi, jaringan internal cluster telah berfungsi dengan baik.
+Jika tidak maka lakukan ini:
 
----
+## **Langkah 1 — Dapatkan public key dari VM-Management**
+
+1. Masuk ke **VM-Management** via SSH (dari laptop):
+
+   ```bash
+   ssh insightera@<Public-IP-Management>
+   ```
+2. Lihat isi public key:
+
+   ```bash
+   cat ~/.ssh/insightera.pub
+   ```
+3. **Salin seluruh output** (dimulai dari `ssh-rsa AAAA...` sampai akhir).
+
+
+## **Langkah 2 — Buka VM-Master di Azure Portal**
+
+1. Buka portal: [https://portal.azure.com](https://portal.azure.com)
+2. Masuk ke **Resource Group → RG-Datalakehouse-Insightera → VM-Master**
+3. Di menu kiri, pilih **Operations → Run Command**
+4. Pilih **RunShellScript**
+
+
+## **Langkah 3 — Tambahkan public key ke VM-Master**
+
+Di jendela *Run Command Script*, tempelkan perintah ini:
+
+```bash
+mkdir -p /home/insightera/.ssh
+chmod 700 /home/insightera/.ssh
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDqC9E... insightera@VM-Management" >> /home/insightera/.ssh/authorized_keys
+chmod 600 /home/insightera/.ssh/authorized_keys
+chown -R insightera:insightera /home/insightera/.ssh
+```
+
+> **Ganti** isi `"ssh-rsa AAAA... insightera@VM-Management"` dengan hasil asli dari langkah 1.
+
+Klik **Run** 
+
+
+## **Langkah 4 — Uji koneksi dari VM-Management**
+
+Kembali ke terminal di VM-Management:
+
+```bash
+ssh -i ~/.ssh/insightera insightera@10.0.1.7
+```
+
+Sekarang seharusnya **langsung berhasil login ke VM-Master tanpa error `Permission denied`** 🎉
+
+
+## **Ulangi untuk node lain (Worker1, Worker2)**
+
+Kamu bisa ulangi langkah **2–4** untuk:
+
+* `VM-Worker1`
+* `VM-Worker2`
+
+Cukup ganti target VM di Azure Portal dan jalankan perintah yang sama.
+
+
+## Tips Tambahan (jika sering perlu)
+
+Kalau sering ingin mengubah authorized key antar-node, aktifkan fitur:
+**VM → Reset password → SSH public key**
+
+* Masuk ke: VM-Master → *Support + Troubleshooting → Reset password*
+* Mode: `SSH public key`
+* Username: `insightera`
+* Paste isi key `.pub` dari Management
+
+Azure akan otomatis menulis ulang file `authorized_keys` di VM-Master.
+
+Selanjutnya buat lagi insightera.pub di VM Master:
+
+```bash
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/insightera -N ""
+```
+
+lanjutkan dengan melihat isi
+
+   ```bash
+   cat ~/.ssh/insightera.pub
+   ```
+**Salin seluruh output** (dimulai dari `ssh-rsa AAAA...` sampai akhir).
+
+Masuk ke portal azure dan run seperti code pada langkah 3
+```bash
+mkdir -p /home/insightera/.ssh
+chmod 700 /home/insightera/.ssh
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDqC9E... insightera@VM-Management" >> /home/insightera/.ssh/authorized_keys
+chmod 600 /home/insightera/.ssh/authorized_keys
+chown -R insightera:insightera /home/insightera/.ssh
+```
+hanya saja ssh-rsa nya ganti yang di buat dari VM Master, run ini di VM-Worker1 dan VM-Worker2
+
+lalu coba masuk dari master ke worker dengan:
+- Worker 1
+```bash
+ssh -i ~/.ssh/insightera insightera@10.0.1.9
+```
+lalu ketik exit untuk keluar dari worker1 ke master, lalu periksa lagi:
+
+- Worker 2
+```bash
+ssh -i ~/.ssh/insightera insightera@10.0.1.10
+```
+
+lalu exit kembali ke master dan management
+
 
 #### 6. Menambahkan Host Mapping
 
-Agar setiap node dapat saling mengenali tanpa IP, tambahkan entri ke dalam file `/etc/hosts` pada masing-masing VM:
+Agar setiap node dapat saling mengenali tanpa IP, tambahkan entri ke dalam file `/etc/hosts` pada masing-masing VM (Master dan Management):
 
 ```
 10.0.1.7 master
-10.0.1.8 management
 10.0.1.9 worker1
 10.0.1.10 worker2
 ```
@@ -193,6 +303,36 @@ sudo nano /etc/hosts
 ```
 
 Simpan perubahan dengan `Ctrl + O` lalu keluar dengan `Ctrl + X`.
+
+lanjut agar bisa langsung memanggil denganb `ssh master` atau maka edit konfigurasi ini di 
+
+```bash
+nano ~/.ssh/config
+```
+lanjutkan dengan paste ini:
+
+```bash
+# Konfigurasi SSH untuk cluster INSIGHTERA
+
+Host master
+    HostName 10.0.1.7
+    User insightera
+    IdentityFile ~/.ssh/insightera
+
+Host worker1
+    HostName 10.0.1.9
+    User insightera
+    IdentityFile ~/.ssh/insightera
+
+Host worker2
+    HostName 10.0.1.10
+    User insightera
+    IdentityFile ~/.ssh/insightera
+```
+
+lalu keluar dan simpan.
+
+lakukan hal yang sama seperti di atas di VM Master. lalu coba `ssh worker1` atau `ssh worker2` maka akan masuk ke VM Worker 1 atau Woker 2.
 
 ---
 
