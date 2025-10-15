@@ -43,18 +43,23 @@ Gunakan perintah berikut untuk membuat masing-masing node VM:
 
 ```bash
 # VM-Master
+az network nic create \
+  --name NIC-Master \
+  --resource-group RG-Datalakehouse-Insightera \
+  --vnet-name VNet-Datalakehouse-Insightera \
+  --subnet Subnet-Compute \
+  --private-ip-address 10.0.1.7 \
+  --network-security-group NSG-Insightera
+
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Master \
   --image Ubuntu2404 \
-  --size Standard_B2s \
+  --size Standard_B1ms \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera.pub \
-  --vnet-name VNet-Datalakehouse-Insightera \
-  --subnet Subnet-Compute \
+  --nics NIC-Master \
   --os-disk-size-gb 64 \
-  --nsg NSG-Insightera \
-  --private-ip-address 10.0.1.7 \
   --tags project=insightera role=master env=dev
 ```
 
@@ -72,12 +77,20 @@ az vm create \
   --os-disk-size-gb 64 \
   --nsg NSG-Insightera \
   --private-ip-address 10.0.1.8 \
+  --public-ip-address "" \
   --tags project=insightera role=management env=dev
-
 ```
 
 ```bash
 # VM-Worker1
+az network nic create \
+  --name NIC-Worker1 \
+  --resource-group RG-Datalakehouse-Insightera \
+  --vnet-name VNet-Datalakehouse-Insightera \
+  --subnet Subnet-Compute \
+  --private-ip-address 10.0.1.9 \
+  --network-security-group NSG-Insightera
+
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Worker1 \
@@ -85,28 +98,30 @@ az vm create \
   --size Standard_B1ms \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera.pub \
-  --vnet-name VNet-Datalakehouse-Insightera \
-  --subnet Subnet-Compute \
+  --nics NIC-Worker1 \
   --os-disk-size-gb 64 \
-  --nsg NSG-Insightera \
-  --private-ip-address 10.0.1.9 \
   --tags project=insightera role=worker env=dev
 ```
 
 ```bash
 # VM-Worker2
+az network nic create \
+  --name NIC-Worker2 \
+  --resource-group RG-Datalakehouse-Insightera \
+  --vnet-name VNet-Datalakehouse-Insightera \
+  --subnet Subnet-Compute \
+  --private-ip-address 10.0.1.10 \
+  --network-security-group NSG-Insightera
+
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Worker2 \
   --image Ubuntu2404 \
-  --size Standard_B1ms \
+  --size Standard_A1_v2 \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera.pub \
-  --vnet-name VNet-Datalakehouse-Insightera \
-  --subnet Subnet-Compute \
+  --nics NIC-Worker2 \
   --os-disk-size-gb 64 \
-  --nsg NSG-Insightera \
-  --private-ip-address 10.0.1.10 \
   --tags project=insightera role=worker env=dev
 ```
 
