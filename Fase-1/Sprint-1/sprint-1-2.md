@@ -52,7 +52,7 @@ az vm create \
   --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
-  --os-disk-size-gb 128 \
+  --os-disk-size-gb 64 \
   --nsg NSG-Insightera \
   --private-ip-address 10.0.1.7 \
   --tags project=insightera role=master env=dev
@@ -69,7 +69,7 @@ az vm create \
   --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
-  --os-disk-size-gb 128 \
+  --os-disk-size-gb 64 \
   --nsg NSG-Insightera \
   --private-ip-address 10.0.1.8 \
   --tags project=insightera role=management env=dev
@@ -87,7 +87,7 @@ az vm create \
   --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
-  --os-disk-size-gb 64 \
+  --os-disk-size-gb 32 \
   --nsg NSG-Insightera \
   --private-ip-address 10.0.1.9 \
   --tags project=insightera role=worker env=dev
@@ -104,7 +104,7 @@ az vm create \
   --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
-  --os-disk-size-gb 64 \
+  --os-disk-size-gb 32 \
   --nsg NSG-Insightera \
   --private-ip-address 10.0.1.10 \
   --tags project=insightera role=worker env=dev
