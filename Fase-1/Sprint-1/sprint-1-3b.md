@@ -28,7 +28,7 @@ Pastikan ada dua DataNode aktif. Setelah itu, lakukan pembaruan sistem dan insta
 
 ```bash
 sudo apt update -y
-sudo apt install openjdk-11-jdk scala git -y
+sudo apt install openjdk-17-jdk scala git -y
 ```
 
 Verifikasi Java dan Scala:
