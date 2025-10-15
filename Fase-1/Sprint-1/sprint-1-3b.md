@@ -95,7 +95,7 @@ Isi dengan konfigurasi berikut:
 
 ```bash
 export SPARK_MASTER_HOST=master
-export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
 export SPARK_WORKER_CORES=2
 export SPARK_WORKER_MEMORY=2g
