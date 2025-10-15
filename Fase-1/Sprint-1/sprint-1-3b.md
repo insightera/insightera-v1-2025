@@ -114,6 +114,12 @@ worker2
 Salin file konfigurasi ini dari Master ke kedua Worker:
 
 ```bash
+for node in worker1 worker2; do
+  ssh $node "sudo mkdir -p /opt/spark && sudo chown -R insightera:insightera /opt/spark"
+done
+```
+
+```bash
 scp -r /opt/spark/conf worker1:/opt/spark/
 scp -r /opt/spark/conf worker2:/opt/spark/
 ```
