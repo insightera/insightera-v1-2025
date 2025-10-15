@@ -46,7 +46,7 @@ Gunakan perintah berikut untuk membuat masing-masing node VM:
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Master \
-  --image Ubuntu2204 \
+  --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera_dev_key.pub \
@@ -63,7 +63,7 @@ az vm create \
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Management \
-  --image Ubuntu2204 \
+  --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera_dev_key.pub \
@@ -80,7 +80,7 @@ az vm create \
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Worker1 \
-  --image Ubuntu2204 \
+  --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera_dev_key.pub \
@@ -97,7 +97,7 @@ az vm create \
 az vm create \
   --resource-group RG-Datalakehouse-Insightera \
   --name VM-Worker2 \
-  --image Ubuntu2204 \
+  --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username insightera \
   --ssh-key-values ~/.ssh/insightera_dev_key.pub \
