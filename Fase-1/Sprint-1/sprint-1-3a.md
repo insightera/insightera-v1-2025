@@ -262,6 +262,9 @@ for node in worker1 worker2; do
 done
 ```
 
+
+
+
 Lalu verifikasi di setiap worker:
 
 ```bash

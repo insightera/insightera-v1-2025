@@ -124,6 +124,15 @@ scp -r /opt/spark/conf worker1:/opt/spark/
 scp -r /opt/spark/conf worker2:/opt/spark/
 ```
 
+salin juga semua spark master ke worker
+
+```bash
+for node in worker1 worker2; do
+  echo "Deploying Spark to $node ..."
+  ssh $node "sudo mkdir -p /opt && sudo chown -R insightera:insightera /opt"
+  scp -r /opt/spark $node:/opt/
+done
+```
 ---
 
 #### 5. Menyiapkan Direktori Log Spark di HDFS
