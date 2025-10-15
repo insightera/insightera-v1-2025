@@ -95,9 +95,52 @@ Lakukan pengujian replikasi file antar DataNode:
 
 ```bash
 echo "test data lakehouse replication" > replication-test.txt
+```
+#### ** Buat folder user di HDFS**
+
+Buat folder `/user` (kalau belum ada):
+
+```bash
+hdfs dfs -mkdir /user
+```
+
+Kemudian buat folder untuk user kamu:
+
+```bash
+hdfs dfs -mkdir /user/insightera
+```
+
+Set permission supaya kamu bisa tulis:
+
+```bash
+hdfs dfs -chown -R insightera /user/insightera
+hdfs dfs -chmod -R 755 /user/insightera
+```
+
+---
+
+#### ** uji coba upload**
+
+Sekarang ulangi:
+
+```bash
 hdfs dfs -put replication-test.txt /user/insightera/
+```
+
+Lalu cek:
+
+```bash
 hdfs dfs -ls /user/insightera/
 ```
+
+Output yang benar:
+
+```
+Found 1 items
+-rw-r--r--   1 insightera supergroup         32 2025-10-15 10:42 /user/insightera/replication-test.txt
+```
+
+
 
 Verifikasi faktor replikasi:
 
