@@ -30,10 +30,10 @@ Subnet: `Subnet-Compute`
 Sebelum membuat VM, buat terlebih dahulu pasangan kunci SSH di mesin lokal (macOS atau Linux):
 
 ```bash
-ssh-keygen -t rsa -b 4096 -f ~/.ssh/insightera_dev_key -N ""
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/insightera -N ""
 ```
 
-Kunci publik `~/.ssh/insightera_dev_key.pub` akan digunakan untuk otentikasi VM.
+Kunci publik `~/.ssh/insightera.pub` akan digunakan untuk otentikasi VM.
 
 ---
 
@@ -49,7 +49,7 @@ az vm create \
   --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username insightera \
-  --ssh-key-values ~/.ssh/insightera_dev_key.pub \
+  --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
   --os-disk-size-gb 64 \
@@ -66,7 +66,7 @@ az vm create \
   --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username insightera \
-  --ssh-key-values ~/.ssh/insightera_dev_key.pub \
+  --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
   --os-disk-size-gb 64 \
@@ -83,7 +83,7 @@ az vm create \
   --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username insightera \
-  --ssh-key-values ~/.ssh/insightera_dev_key.pub \
+  --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
   --os-disk-size-gb 64 \
@@ -100,7 +100,7 @@ az vm create \
   --image Ubuntu2404 \
   --size Standard_B2s \
   --admin-username insightera \
-  --ssh-key-values ~/.ssh/insightera_dev_key.pub \
+  --ssh-key-values ~/.ssh/insightera.pub \
   --vnet-name VNet-Datalakehouse-Insightera \
   --subnet Subnet-Compute \
   --os-disk-size-gb 64 \
